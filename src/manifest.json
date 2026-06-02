@@ -1,0 +1,93 @@
+{
+  "name": "DiabetesCare — Diabetes Management App",
+  "short_name": "DiabetesCare",
+  "description": "Free all-in-one diabetes management app. Track blood glucose, log insulin, count carbs and get personalised insights.",
+  "start_url": "/diabetes-app/src/index.html",
+  "scope": "/diabetes-app/src/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#185FA5",
+  "theme_color": "#185FA5",
+  "lang": "en",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    {
+      "src": "icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screen1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Dashboard"
+    },
+    {
+      "src": "screenshots/screen2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Blood Glucose Log"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Blood Glucose",
+      "short_name": "Log BG",
+      "description": "Quickly log a blood glucose reading",
+      "url": "/diabetes-app/src/index.html#log",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Insulin Calculator",
+      "short_name": "Insulin",
+      "description": "Calculate insulin dose",
+      "url": "/diabetes-app/src/index.html#insulin",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}

@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>DiabetesCare — All-in-One Diabetes Management App</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#185FA5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DiabetesCare">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="description" content="A free, browser-based diabetes management app. Track blood glucose, log insulin, count carbs, and get personalised insights.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
@@ -552,6 +558,15 @@ function saveSettings(){
 }
 
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initCharts);}else{setTimeout(initCharts,50);}
+</script>
+<script>
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("service-worker.js")
+      .then(reg=>console.log("[SW] Registered:",reg.scope))
+      .catch(err=>console.warn("[SW] Registration failed:",err));
+  });
+}
 </script>
 </body>
 </html>

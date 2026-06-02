@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DiabetesCare — All-in-One Diabetes Management App</title>
+<meta name="description" content="A free, browser-based diabetes management app. Track blood glucose, log insulin, count carbs, and get personalised insights.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8f9fa;--surface:#fff;--surface2:#f1f3f5;--border:#dee2e6;
+  --text:#212529;--text2:#6c757d;--text3:#adb5bd;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1b1e;--surface:#25262b;--surface2:#2c2e33;--border:#373a40;
+    --text:#c9cace;--text2:#909296;--text3:#5c5f66;
+    --blue-light:#0C447C;--green-light:#173404;--amber-light:#412402;--red-light:#501313;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+.app-wrap{max-width:560px;margin:0 auto;padding:0 0 80px}
+
+/* Header */
+.app-header{background:var(--blue);color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.app-logo{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px}
+.app-header h1{font-size:18px;font-weight:600;flex:1}
+.app-header .subtitle{font-size:12px;opacity:.8}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;font-size:10px;color:var(--text2);cursor:pointer;border:none;background:transparent;transition:.15s}
+.nav-item i{font-size:22px}
+.nav-item.active{color:var(--blue)}
+.nav-item.active i{font-size:22px}
+
+/* Pages */
+.page{display:none;padding:20px 16px}
+.page.active{display:block}
+.page-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.page-subtitle{font-size:13px;color:var(--text2);margin-bottom:20px}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--text)}
+.card-title i{font-size:18px;color:var(--text2)}
+
+/* Metric grid */
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;text-align:center}
+.metric-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.metric-value{font-size:28px;font-weight:700}
+.metric-unit{font-size:12px;color:var(--text2);margin-top:2px}
+.v-good{color:var(--green)}.v-warn{color:var(--amber)}.v-danger{color:var(--red)}.v-blue{color:var(--blue)}
+
+/* Log rows */
+.log-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.log-row:last-child{border-bottom:none}
+.log-time{color:var(--text3);font-size:11px;min-width:48px}
+.log-val{font-weight:600;min-width:64px}
+.log-tag{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--surface2);color:var(--text2)}
+
+/* Badges */
+.badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-left:auto}
+.b-good{background:var(--green-light);color:var(--green)}
+.b-warn{background:var(--amber-light);color:var(--amber)}
+.b-danger{background:var(--red-light);color:var(--red)}
+
+/* Forms */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{margin-bottom:12px}
+label{font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px}
+input,select,textarea{width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);color:var(--text);font-family:inherit;transition:.15s}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.1)}
+
+/* Buttons */
+.btn{padding:10px 20px;font-size:14px;font-weight:600;border-radius:var(--radius);cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--border)}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark);border-color:var(--blue-dark)}
+.btn-block{width:100%;justify-content:center}
+.btn-sm{padding:7px 14px;font-size:12px}
+
+/* Status bar */
+.status-bar{height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;margin:6px 0}
+.status-fill{height:100%;border-radius:5px;transition:.5s}
+
+/* Tip box */
+.tip{background:var(--blue-light);border-left:3px solid var(--blue);border-radius:0 var(--radius) var(--radius) 0;padding:12px 14px;font-size:13px;color:var(--text);margin-top:12px;line-height:1.5}
+
+/* Range slider */
+.range-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.range-row label{min-width:150px;margin:0;font-size:13px}
+.range-row input[type=range]{flex:1;accent-color:var(--blue)}
+.range-val{font-size:14px;font-weight:600;min-width:48px;text-align:right;color:var(--blue)}
+
+/* Food grid */
+.food-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.food-item{background:var(--surface2);border-radius:var(--radius);padding:10px 8px;text-align:center;cursor:pointer;border:1px solid transparent;transition:.15s}
+.food-item:hover{border-color:var(--blue);background:var(--blue-light)}
+.food-name{font-size:11px;color:var(--text2);margin-bottom:4px}
+.food-carbs{font-size:18px;font-weight:700;color:var(--blue)}
+.food-unit{font-size:10px;color:var(--text3)}
+
+/* Dose result */
+.dose-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;padding:16px 0}
+.dose-label{font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:6px}
+.dose-val{font-size:28px;font-weight:700}
+
+/* Alert banner */
+.alert{padding:12px 16px;border-radius:var(--radius);margin-bottom:12px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.alert-success{background:var(--green-light);color:var(--green)}
+.alert-danger{background:var(--red-light);color:var(--red)}
+.alert-warn{background:var(--amber-light);color:var(--amber)}
+
+/* Chart wrapper */
+.chart-wrap{position:relative;height:160px;margin:8px 0}
+
+/* Section label */
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:8px}
+
+/* Target row */
+.target-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.target-row:last-child{border-bottom:none}
+
+/* Disclaimer */
+.disclaimer{font-size:11px;color:var(--text3);background:var(--surface2);padding:10px 12px;border-radius:var(--radius);margin-top:8px;line-height:1.5}
+
+/* Responsive */
+@media(min-width:600px){
+  .metric-grid{grid-template-columns:repeat(4,1fr)}
+  .app-wrap{padding:0 0 80px}
+  .bottom-nav{max-width:560px;left:50%;transform:translateX(-50%);border-radius:var(--radius-lg) var(--radius-lg) 0 0;border:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<div class="app-wrap">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-logo"><i class="ti ti-heart-rate-monitor" aria-hidden="true"></i></div>
+    <div>
+      <h1>DiabetesCare</h1>
+      <div class="subtitle">All-in-one diabetes management</div>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <p class="page-title">Good morning 👋</p>
+    <p class="page-subtitle">Here's your health summary for today.</p>
+
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Current BG</div>
+        <div class="metric-value v-warn" id="cur-bg">7.2</div>
+        <div class="metric-unit">mmol/L</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">HbA1c est.</div>
+        <div class="metric-value v-good" id="hba1c-val">6.8%</div>
+        <div class="metric-unit">estimated</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">In Range</div>
+        <div class="metric-value v-good">72%</div>
+        <div class="metric-unit">today</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Last Insulin</div>
+        <div class="metric-value v-blue">4u</div>
+        <div class="metric-unit">2h ago</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-line" aria-hidden="true"></i>Blood glucose today</div>
+      <div class="chart-wrap"><canvas id="bg-chart"></canvas></div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:#185FA5;display:inline-block;border-radius:2px"></span>Blood glucose</span>
+        <span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:#E24B4A;display:inline-block;border-radius:2px;opacity:.6"></span>High (10 mmol)</span>
+        <span style="font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px"><span style="width:14px;height:3px;background:#EF9F27;display:inline-block;border-radius:2px;opacity:.6"></span>Low (4 mmol)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-clock" aria-hidden="true"></i>Recent readings</div>
+      <div id="dash-log">
+        <div class="log-row"><span class="log-time">08:00</span><span class="log-val v-good">5.4 mmol</span><span class="log-tag">Fasting</span><span class="badge b-good">In range</span></div>
+        <div class="log-row"><span class="log-time">10:30</span><span class="log-val v-warn">8.1 mmol</span><span class="log-tag">Post-meal</span><span class="badge b-warn">High</span></div>
+        <div class="log-row"><span class="log-time">13:00</span><span class="log-val v-good">6.2 mmol</span><span class="log-tag">Pre-meal</span><span class="badge b-good">In range</span></div>
+        <div class="log-row"><span class="log-time">15:45</span><span class="log-val v-warn">7.2 mmol</span><span class="log-tag">Random</span><span class="badge b-warn">High</span></div>
+      </div>
+    </div>
+
+    <div class="tip"><strong>💡 Insight:</strong> Your post-meal readings are trending slightly high today. Consider a 15-minute walk after your next meal to help lower blood glucose naturally.</div>
+  </div>
+
+  <!-- LOG BG -->
+  <div id="page-log" class="page">
+    <p class="page-title">Log Blood Glucose</p>
+    <p class="page-subtitle">Record your blood sugar reading.</p>
+
+    <div id="bg-alert"></div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-droplet" aria-hidden="true"></i>New reading</div>
+      <div class="form-row">
+        <div><label>Blood glucose (mmol/L)</label><input type="number" id="bg-val" min="1" max="30" step="0.1" placeholder="e.g. 6.5"></div>
+        <div><label>Time</label><input type="time" id="bg-time"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Reading type</label>
+          <select id="bg-type"><option>Fasting</option><option>Pre-meal</option><option selected>Post-meal</option><option>Bedtime</option><option>Random</option></select>
+        </div>
+        <div><label>Notes</label><input type="text" id="bg-notes" placeholder="e.g. after exercise"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="logBG()"><i class="ti ti-plus" aria-hidden="true"></i>Log reading</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-target" aria-hidden="true"></i>Target ranges</div>
+      <div class="target-row"><span>Fasting / pre-meal</span><strong>4.0 – 7.0 mmol/L</strong></div>
+      <div class="target-row"><span>2h post-meal</span><strong>&lt; 8.5 mmol/L</strong></div>
+      <div class="target-row"><span>Bedtime</span><strong>6.0 – 8.0 mmol/L</strong></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list" aria-hidden="true"></i>Today's log</div>
+      <div id="bg-log">
+        <div class="log-row"><span class="log-time">08:00</span><span class="log-val">5.4</span><span class="log-tag">Fasting</span><span class="badge b-good">In range</span></div>
+        <div class="log-row"><span class="log-time">10:30</span><span class="log-val">8.1</span><span class="log-tag">Post-meal</span><span class="badge b-warn">High</span></div>
+        <div class="log-row"><span class="log-time">13:00</span><span class="log-val">6.2</span><span class="log-tag">Pre-meal</span><span class="badge b-good">In range</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSULIN -->
+  <div id="page-insulin" class="page">
+    <p class="page-title">Insulin</p>
+    <p class="page-subtitle">Calculate dose and log injections.</p>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-calculator" aria-hidden="true"></i>Dose calculator</div>
+      <div class="form-row">
+        <div><label>Current BG (mmol/L)</label><input type="number" id="ins-bg" placeholder="e.g. 8.5" min="1" max="30" step="0.1"></div>
+        <div><label>Carbs in meal (g)</label><input type="number" id="ins-carbs" placeholder="e.g. 45" min="0"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Carb ratio (1u per Xg)</label><input type="number" id="ins-ratio" value="10" min="1"></div>
+        <div><label>Target BG (mmol/L)</label><input type="number" id="ins-target" value="5.5" step="0.1"></div>
+      </div>
+      <div class="form-group"><label>Correction factor (1u lowers by X mmol)</label><input type="number" id="ins-cf" value="2.5" step="0.1"></div>
+      <button class="btn btn-primary btn-block" onclick="calcInsulin()"><i class="ti ti-calculator" aria-hidden="true"></i>Calculate dose</button>
+      <div id="ins-result" style="display:none;margin-top:16px">
+        <div class="dose-grid">
+          <div><div class="dose-label">Meal dose</div><div class="dose-val v-blue" id="meal-dose">0u</div></div>
+          <div><div class="dose-label">Correction</div><div class="dose-val v-warn" id="corr-dose">0u</div></div>
+          <div><div class="dose-label">Total</div><div class="dose-val v-good" id="total-dose">0u</div></div>
+        </div>
+        <div class="disclaimer">⚠️ Always confirm insulin doses with your healthcare provider. This calculator is a guide only and does not replace medical advice.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-needle" aria-hidden="true"></i>Log dose</div>
+      <div id="ins-alert"></div>
+      <div class="form-row-3">
+        <div><label>Units</label><input type="number" id="ins-units" placeholder="e.g. 6" min="0" step="0.5"></div>
+        <div><label>Type</label><select id="ins-type"><option>Rapid-acting</option><option>Long-acting</option><option>Mixed</option></select></div>
+        <div><label>Time</label><input type="time" id="ins-time"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="logInsulin()"><i class="ti ti-plus" aria-hidden="true"></i>Log dose</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-list" aria-hidden="true"></i>Insulin log — today</div>
+      <div id="ins-log">
+        <div class="log-row"><span class="log-time">07:30</span><span class="log-val">8u</span><span class="log-tag">Rapid-acting</span></div>
+        <div class="log-row"><span class="log-time">07:30</span><span class="log-val">18u</span><span class="log-tag">Long-acting</span></div>
+        <div class="log-row"><span class="log-time">12:30</span><span class="log-val">4u</span><span class="log-tag">Rapid-acting</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEALS -->
+  <div id="page-meals" class="page">
+    <p class="page-title">Meal Planner</p>
+    <p class="page-subtitle">Count carbs and plan meals.</p>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-plus" aria-hidden="true"></i>Add food item</div>
+      <div class="form-row">
+        <div><label>Food name</label><input type="text" id="food-name" placeholder="e.g. Brown rice (1 cup)"></div>
+        <div><label>Carbohydrates (g)</label><input type="number" id="food-carbs" placeholder="e.g. 45" min="0"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="addFood()"><i class="ti ti-plus" aria-hidden="true"></i>Add to meal</button>
+      <div id="meal-list" style="margin-top:12px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border);margin-top:4px">
+        <span style="font-weight:600">Total carbs</span>
+        <span style="font-size:24px;font-weight:700;color:var(--blue)"><span id="total-carbs">0</span>g</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-database" aria-hidden="true"></i>Common foods — tap to add</div>
+      <div class="food-grid" id="food-grid">
+        <div class="food-item" onclick="quickAdd('White rice (1 cup)',45)"><div class="food-name">White rice (1 cup)</div><div class="food-carbs">45</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Pap (1 cup)',38)"><div class="food-name">Pap (1 cup)</div><div class="food-carbs">38</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Brown bread (2 sl.)',28)"><div class="food-name">Brown bread (2 sl.)</div><div class="food-carbs">28</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Banana (med)',27)"><div class="food-name">Banana (medium)</div><div class="food-carbs">27</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Apple (med)',25)"><div class="food-name">Apple (medium)</div><div class="food-carbs">25</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Potato (med)',37)"><div class="food-name">Potato (medium)</div><div class="food-carbs">37</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Pasta (1 cup)',43)"><div class="food-name">Pasta (1 cup)</div><div class="food-carbs">43</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Orange juice 250ml',26)"><div class="food-name">OJ (250ml)</div><div class="food-carbs">26</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Milk 250ml',12)"><div class="food-name">Milk (250ml)</div><div class="food-carbs">12</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Sweet potato (med)',26)"><div class="food-name">Sweet potato</div><div class="food-carbs">26</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Mango (med)',25)"><div class="food-name">Mango (medium)</div><div class="food-carbs">25</div><div class="food-unit">g carbs</div></div>
+        <div class="food-item" onclick="quickAdd('Samp (1 cup)',36)"><div class="food-name">Samp (1 cup)</div><div class="food-carbs">36</div><div class="food-unit">g carbs</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div id="page-insights" class="page">
+    <p class="page-title">Insights</p>
+    <p class="page-subtitle">Your 7-day health overview.</p>
+
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-label">7-day avg</div><div class="metric-value v-good">6.8</div><div class="metric-unit">mmol/L</div></div>
+      <div class="metric-card"><div class="metric-label">In range</div><div class="metric-value v-good">74%</div><div class="metric-unit">7-day TIR</div></div>
+      <div class="metric-card"><div class="metric-label">Hypos</div><div class="metric-value v-good">1</div><div class="metric-unit">this week</div></div>
+      <div class="metric-card"><div class="metric-label">High events</div><div class="metric-value v-warn">3</div><div class="metric-unit">this week</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i>7-day trend</div>
+      <div class="chart-wrap" style="height:150px"><canvas id="trend-chart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-percentage" aria-hidden="true"></i>Time in range</div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>In range (4–10 mmol)</span><strong style="color:var(--green)">74%</strong></div>
+        <div class="status-bar"><div class="status-fill" style="width:74%;background:#3B6D11"></div></div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>High (&gt;10 mmol)</span><strong style="color:var(--amber)">18%</strong></div>
+        <div class="status-bar"><div class="status-fill" style="width:18%;background:#EF9F27"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>Low (&lt;4 mmol)</span><strong style="color:var(--red)">8%</strong></div>
+        <div class="status-bar"><div class="status-fill" style="width:8%;background:#E24B4A"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-bulb" aria-hidden="true"></i>Personalised insights</div>
+      <div class="tip" style="margin-bottom:10px">📈 Post-breakfast readings are consistently higher. Consider reducing carbs at breakfast or adjusting morning insulin timing.</div>
+      <div class="tip" style="margin-bottom:10px">🌙 Overnight readings are stable and within range — your long-acting insulin appears well calibrated.</div>
+      <div class="tip">🏃 On days with logged activity, your afternoon BG averages 1.2 mmol/L lower. Keep moving!</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="page-settings" class="page">
+    <p class="page-title">Settings</p>
+    <p class="page-subtitle">Personalise your DiabetesCare app.</p>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i>Patient profile</div>
+      <div class="form-row">
+        <div><label>Full name</label><input type="text" id="s-name" placeholder="Your name"></div>
+        <div><label>Diabetes type</label><select id="s-dtype"><option>Type 1</option><option>Type 2</option><option>Gestational</option><option>LADA</option><option>Pre-diabetes</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label>Date of birth</label><input type="date" id="s-dob"></div>
+        <div><label>Units</label><select id="s-units"><option>mmol/L</option><option>mg/dL</option></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-target" aria-hidden="true"></i>BG alert thresholds</div>
+      <div class="range-row">
+        <label>Low alert</label>
+        <input type="range" min="3" max="5" step="0.1" value="4" id="low-thr" oninput="document.getElementById('low-out').textContent=parseFloat(this.value).toFixed(1)+' mmol'">
+        <span class="range-val" id="low-out">4.0 mmol</span>
+      </div>
+      <div class="range-row">
+        <label>High alert</label>
+        <input type="range" min="7" max="15" step="0.1" value="10" id="high-thr" oninput="document.getElementById('high-out').textContent=parseFloat(this.value).toFixed(1)+' mmol'">
+        <span class="range-val" id="high-out">10.0 mmol</span>
+      </div>
+      <div class="range-row">
+        <label>HbA1c target</label>
+        <input type="range" min="5" max="9" step="0.1" value="7" id="hba1c-thr" oninput="document.getElementById('hba1c-out').textContent=parseFloat(this.value).toFixed(1)+'%'">
+        <span class="range-val" id="hba1c-out">7.0%</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-needle" aria-hidden="true"></i>Insulin settings</div>
+      <div class="form-row">
+        <div><label>Carb ratio (1u per Xg)</label><input type="number" id="s-ratio" value="10" min="1"></div>
+        <div><label>Correction factor</label><input type="number" id="s-cf" value="2.5" step="0.1"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Rapid-acting insulin</label><input type="text" id="s-rapid" placeholder="e.g. NovoRapid"></div>
+        <div><label>Long-acting insulin</label><input type="text" id="s-long" placeholder="e.g. Lantus"></div>
+      </div>
+      <div id="save-alert"></div>
+      <button class="btn btn-primary btn-block" onclick="saveSettings()"><i class="ti ti-device-floppy" aria-hidden="true"></i>Save settings</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-info-circle" aria-hidden="true"></i>About DiabetesCare</div>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px">DiabetesCare is a free, open-source diabetes management app built by Tebogo Maruping as a portfolio project demonstrating React/HTML5, data visualisation, and health UX design.</p>
+      <p style="font-size:12px;color:var(--text3);line-height:1.5">This app is for informational and educational purposes only. It is not a medical device and does not replace advice from your healthcare team. Always consult your doctor or diabetes specialist for medical decisions.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav" aria-label="Main navigation">
+  <button class="nav-item active" onclick="showPage('dashboard',this)" aria-label="Dashboard"><i class="ti ti-layout-dashboard" aria-hidden="true"></i>Dashboard</button>
+  <button class="nav-item" onclick="showPage('log',this)" aria-label="Log blood glucose"><i class="ti ti-droplet" aria-hidden="true"></i>Log BG</button>
+  <button class="nav-item" onclick="showPage('insulin',this)" aria-label="Insulin"><i class="ti ti-needle" aria-hidden="true"></i>Insulin</button>
+  <button class="nav-item" onclick="showPage('meals',this)" aria-label="Meals"><i class="ti ti-salad" aria-hidden="true"></i>Meals</button>
+  <button class="nav-item" onclick="showPage('insights',this)" aria-label="Insights"><i class="ti ti-chart-line" aria-hidden="true"></i>Insights</button>
+  <button class="nav-item" onclick="showPage('settings',this)" aria-label="Settings"><i class="ti ti-settings" aria-hidden="true"></i>Settings</button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const bgReadings=[5.4,8.1,6.2,7.2,6.8,5.9,7.8,8.3,6.5];
+const bgTimes=['06:00','08:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00'];
+const trendVals=[7.2,6.8,7.5,6.4,7.8,6.9,6.5];
+const trendDays=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+let mealTotal=0;
+
+// Set current time defaults
+const now=new Date();
+const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+document.querySelectorAll('input[type=time]').forEach(el=>el.value=timeStr);
+
+function initCharts(){
+  new Chart(document.getElementById('bg-chart').getContext('2d'),{
+    type:'line',
+    data:{labels:bgTimes,datasets:[
+      {data:bgReadings,borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.1)',fill:true,tension:0.4,pointRadius:4,pointBackgroundColor:'#185FA5',pointBorderColor:'#fff',pointBorderWidth:2},
+      {data:Array(9).fill(10),borderColor:'rgba(226,75,74,0.5)',borderDash:[5,5],pointRadius:0,borderWidth:1.5},
+      {data:Array(9).fill(4),borderColor:'rgba(239,159,39,0.5)',borderDash:[5,5],pointRadius:0,borderWidth:1.5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+' mmol/L'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{min:2,max:14,grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11},callback:v=>v.toFixed(0)}}}}
+  });
+  new Chart(document.getElementById('trend-chart').getContext('2d'),{
+    type:'bar',
+    data:{labels:trendDays,datasets:[{data:trendVals,backgroundColor:trendVals.map(v=>v<4?'rgba(226,75,74,0.8)':v>10?'rgba(239,159,39,0.8)':'rgba(24,95,165,0.8)'),borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y.toFixed(1)+' mmol/L'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{min:0,max:12,grid:{color:'rgba(128,128,128,0.1)'},ticks:{font:{size:11}}}}}
+  });
+}
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showAlert(elId,msg,type,duration=3000){
+  const el=document.getElementById(elId);
+  el.innerHTML=`<div class="alert alert-${type}"><i class="ti ti-${type==='success'?'check':type==='danger'?'alert-circle':'alert-triangle'}"></i>${msg}</div>`;
+  if(duration)setTimeout(()=>el.innerHTML='',duration);
+}
+
+function logBG(){
+  const val=parseFloat(document.getElementById('bg-val').value);
+  const time=document.getElementById('bg-time').value;
+  const type=document.getElementById('bg-type').value;
+  if(isNaN(val)||val<1||val>30){showAlert('bg-alert','Please enter a valid blood glucose value (1–30 mmol/L).','danger');return;}
+  const status=val<4?'Low':val>10?'High':'In range';
+  const cls=val<4?'b-danger':val>10?'b-warn':'b-good';
+  const vCls=val<4?'v-danger':val>10?'v-warn':'v-good';
+  const row=document.createElement('div');
+  row.className='log-row';
+  row.innerHTML=`<span class="log-time">${time}</span><span class="log-val ${vCls}">${val.toFixed(1)}</span><span class="log-tag">${type}</span><span class="badge ${cls}">${status}</span>`;
+  document.getElementById('bg-log').prepend(row);
+  showAlert('bg-alert',`Reading logged: ${val.toFixed(1)} mmol/L — ${status}`,'success');
+  document.getElementById('bg-val').value='';
+}
+
+function calcInsulin(){
+  const bg=parseFloat(document.getElementById('ins-bg').value)||0;
+  const carbs=parseFloat(document.getElementById('ins-carbs').value)||0;
+  const ratio=parseFloat(document.getElementById('ins-ratio').value)||10;
+  const target=parseFloat(document.getElementById('ins-target').value)||5.5;
+  const cf=parseFloat(document.getElementById('ins-cf').value)||2.5;
+  const meal=carbs/ratio;
+  const corr=Math.max(0,(bg-target)/cf);
+  document.getElementById('meal-dose').textContent=meal.toFixed(1)+'u';
+  document.getElementById('corr-dose').textContent=corr.toFixed(1)+'u';
+  document.getElementById('total-dose').textContent=(meal+corr).toFixed(1)+'u';
+  document.getElementById('ins-result').style.display='block';
+}
+
+function logInsulin(){
+  const units=parseFloat(document.getElementById('ins-units').value);
+  const type=document.getElementById('ins-type').value;
+  const time=document.getElementById('ins-time').value;
+  if(isNaN(units)||units<=0){showAlert('ins-alert','Please enter a valid dose.','danger');return;}
+  const row=document.createElement('div');
+  row.className='log-row';
+  row.innerHTML=`<span class="log-time">${time}</span><span class="log-val">${units.toFixed(1)}u</span><span class="log-tag">${type}</span>`;
+  document.getElementById('ins-log').prepend(row);
+  showAlert('ins-alert',`${units.toFixed(1)}u ${type} logged.`,'success');
+  document.getElementById('ins-units').value='';
+}
+
+function addFood(){
+  const name=document.getElementById('food-name').value.trim();
+  const carbs=parseFloat(document.getElementById('food-carbs').value);
+  if(!name||isNaN(carbs)||carbs<0)return;
+  renderFoodItem(name,carbs);
+  document.getElementById('food-name').value='';
+  document.getElementById('food-carbs').value='';
+}
+
+function quickAdd(name,carbs){renderFoodItem(name,carbs);}
+
+function renderFoodItem(name,carbs){
+  mealTotal+=carbs;
+  document.getElementById('total-carbs').textContent=Math.round(mealTotal);
+  const row=document.createElement('div');
+  row.className='log-row';
+  row.innerHTML=`<span style="flex:1;font-size:13px">${name}</span><span class="log-val v-blue">${Math.round(carbs)}g</span>`;
+  document.getElementById('meal-list').appendChild(row);
+}
+
+function saveSettings(){
+  showAlert('save-alert','Settings saved successfully.','success',2500);
+}
+
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',initCharts);}else{setTimeout(initCharts,50);}
+</script>
+</body>
+</html>
